@@ -63,15 +63,20 @@ class AppStart extends Command
             $cdr = Cdr::findOrFail($event->getKey('uniqueid'));
             $abandon->number = $cdr->src;
             $abandon->save();
+
+            $this->info("Caller abandoned: " . $cdr->src);
+
             sleep(2);
             $callback = Callback::where("number", $cdr->src)->orderBy('created_at', 'desc')->first();
             $today = Carbon::now();
             if($callback == null) {
+                $this->info("Calling abandoned caller: " . $cdr->src);
                 event(new QueueAbandonEvent($cdr->src, $abandon));
             } elseif($callback !== null && $today->diffInMinutes($callback->created_at) >= 5) {
                 $this->info(json_encode($callback));
                 $this->info(json_encode($today));
                 $this->info(json_encode($today->diffInMinutes($callback->created_at)));
+                $this->info("Calling abandoned caller: " . $cdr->src);
                 event(new QueueAbandonEvent($cdr->src, $abandon));
             }
         }, function ($event) {
