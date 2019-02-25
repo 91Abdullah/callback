@@ -60,9 +60,13 @@ class AppStart extends Command
                 'uniqueid' => $event->getKey('uniqueid')
             ]);
             sleep(2);
-            $cdr = Cdr::findOrFail($event->getKey('uniqueid'));
-            $abandon->number = $cdr->src;
-            $abandon->save();
+
+            $cdr = Cdr::find($event->getKey('uniqueid'));
+
+            if($cdr) {
+                $abandon->number = $cdr->src;
+                $abandon->save();
+            }
 
             $this->info("Caller abandoned: " . $cdr->src);
 
