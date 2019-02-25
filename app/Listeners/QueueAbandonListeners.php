@@ -34,9 +34,9 @@ class QueueAbandonListeners
     {
         $client = new ClientImpl($this->getOptions());
         if(Str::startsWith($event->number, '0')) {
-            $action = new OriginateAction("SIP/" . $event->number . "@TCL");
+            $action = new OriginateAction("SIP/" . $event->number . "@TCLPrimary");
         } else {
-            $action = new OriginateAction("SIP/0" . $event->number . "@TCL");
+            $action = new OriginateAction("SIP/0" . $event->number . "@TCLPrimary");
         }
         //$action->setApplication('queue');
         $action->setContext('from-trunk-sip-TCLPrimary');
