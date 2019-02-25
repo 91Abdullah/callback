@@ -11,8 +11,10 @@ use Carbon\Carbon;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class CallerAbandonListener
+class CallerAbandonListener implements ShouldQueue
 {
+    public $delay = 10;
+
     /**
      * Create the event listener.
      *
@@ -31,14 +33,9 @@ class CallerAbandonListener
      */
     public function handle(CallerAbandonEvent $event)
     {
-        sleep(5);
+        //sleep(5);
         $abandon = $event->abandon;
         $cdr = Cdr::find($event->uniqueId);
-        if($cdr == null) {
-            // wait for 5 secs then find again
-            sleep(5);
-            $cdr = Cdr::find($event->uniqueId);
-        }
 
         $callback = Callback::where("number", $cdr->src)->orderBy('created_at', 'desc')->first();
         $today = Carbon::now();
