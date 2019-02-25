@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\AbandonedCall;
 use App\Callback;
 use App\Cdr;
+use App\Events\CallerAbandonEvent;
 use App\Events\QueueAbandonEvent;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -59,18 +60,20 @@ class AppStart extends Command
                 'holdtime' => $event->getKey('holdtime'),
                 'uniqueid' => $event->getKey('uniqueid')
             ]);
-            sleep(2);
 
-            $cdr = Cdr::find($event->getKey('uniqueid'));
+            $this->info("Caller Abandon Unique ID: " . $event->getKey('uniqueid'));
+            $this->info("Initiating auto callback...");
 
-            if($cdr) {
-                $abandon->number = $cdr->src;
-                $abandon->save();
-            }
+            event(new CallerAbandonEvent($abandon, $event->getKey('uniqueid')));
+
+            /*$cdr = Cdr::findOrFail($event->getKey('uniqueid'));
+            $abandon->number = $cdr->src;
+            $abandon->save();
 
             $this->info("Caller abandoned: " . $cdr->src);
 
             sleep(2);
+
             $callback = Callback::where("number", $cdr->src)->orderBy('created_at', 'desc')->first();
             $today = Carbon::now();
             if($callback == null) {
@@ -82,7 +85,7 @@ class AppStart extends Command
                 $this->info(json_encode($today->diffInMinutes($callback->created_at)));
                 $this->info("Calling abandoned caller: " . $cdr->src);
                 event(new QueueAbandonEvent($cdr->src, $abandon));
-            }
+            }*/
         }, function ($event) {
             return $event instanceof QueueCallerAbandonEvent;
         });

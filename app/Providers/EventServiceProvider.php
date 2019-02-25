@@ -20,6 +20,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         'App\Events\QueueAbandonEvent' => [
             'App\Listeners\QueueAbandonListeners'
+        ],
+        'App\Events\CallerAbandonEvent' => [
+            'App\Listeners\CallerAbandonListener'
         ]
     ];
 
