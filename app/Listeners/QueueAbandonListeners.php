@@ -7,6 +7,7 @@ use App\Events\QueueAbandonEvent;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use PAMI\Client\Exception\ClientException;
 use PAMI\Client\Impl\ClientImpl;
 use PAMI\Message\Action\OriginateAction;
@@ -32,11 +33,15 @@ class QueueAbandonListeners
     public function handle(QueueAbandonEvent $event)
     {
         $client = new ClientImpl($this->getOptions());
-        $action = new OriginateAction("SIP/0" . $event->number . "@TCL");
+        if(Str::startsWith($event->number, '0')) {
+            $action = new OriginateAction("SIP/" . $event->number . "@TCL");
+        } else {
+            $action = new OriginateAction("SIP/0" . $event->number . "@TCL");
+        }
         //$action->setApplication('queue');
-        $action->setContext('from-trunk-sip-TCL');
+        $action->setContext('from-trunk-sip-TCLPrimary');
         $action->setPriority('1');
-        $action->setExtension('2138797457');
+        $action->setExtension('2138658800');
         $action->setVariable('CALLERID(num)', $event->number);
         $action->setVariable('CDR(userfield)', 'callback');
         //$action->setVariable('CDR(src)', $cdr->src);
@@ -61,11 +66,11 @@ class QueueAbandonListeners
     private function getOptions()
     {
         return $options = [
-            'host' => '10.0.0.80',
+            'host' => '172.54.5.18',
             'scheme' => 'tcp://',
             'port' => 5038,
-            'username' => 'remote_mgr',
-            'secret' => '0chanc3yo',
+            'username' => 'callback_mgr',
+            'secret' => '0chanc3yoadjasldjkasl',
             'connect_timeout' => 10,
             'read_timeout' => 10
         ];
