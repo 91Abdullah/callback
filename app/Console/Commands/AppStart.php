@@ -98,8 +98,9 @@ class AppStart extends Command
             }
         } catch (ClientException $e) {
             $this->info($e->getMessage());
-            $this->info($e->getTraceAsString());
+            //$this->info($e->getTraceAsString());
         }
+        return 0;
     }
 
     private function returnOptions()
@@ -110,8 +111,8 @@ class AppStart extends Command
             'port' => 5038,
             'username' => 'callback_mgr',
             'secret' => '0chanc3yoadjasldjkasl',
-            'connect_timeout' => 100,
-            'read_timeout' => 100
+            'connect_timeout' => 10000,
+            'read_timeout' => 10000
         ];
     }
 }

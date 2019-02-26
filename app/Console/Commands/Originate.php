@@ -1,51 +1,63 @@
 <?php
 
-namespace App\Listeners;
+namespace App\Console\Commands;
 
 use App\Callback;
-use App\Events\QueueAbandonEvent;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PAMI\Client\Exception\ClientException;
 use PAMI\Client\Impl\ClientImpl;
 use PAMI\Message\Action\OriginateAction;
 
-class QueueAbandonListeners
+class Originate extends Command
 {
     /**
-     * Create the event listener.
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'originate:start {number}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Command description';
+
+    /**
+     * Create a new command instance.
      *
      * @return void
      */
     public function __construct()
     {
-        //
+        parent::__construct();
     }
 
     /**
-     * Handle the event.
+     * Execute the console command.
      *
-     * @param  QueueAbandonEvent  $event
-     * @return void
+     * @return mixed
      */
-    public function handle(QueueAbandonEvent $event)
+    public function handle()
     {
         $client = new ClientImpl($this->getOptions());
-        if(Str::startsWith($event->number, '0')) {
-            $action = new OriginateAction("SIP/" . $event->number . "@TCLPrimary");
-            Log::info("Dialing without zero: " . $event->number);
+        if(Str::startsWith($this->argument('number'), '0')) {
+            $action = new OriginateAction("SIP/" . $this->argument('number') . "@TCLPrimary");
+            $this->info("Dialing without zero: " . $this->argument('number'));
         } else {
-            $action = new OriginateAction("SIP/0" . $event->number . "@TCLPrimary");
-            Log::info("Dialing with zero: " . $event->number);
+            $action = new OriginateAction("SIP/0" . $this->argument('number') . "@TCLPrimary");
+            $this->info("Dialing with zero: " . $this->argument('number'));
         }
         //$action->setApplication('queue');
         $action->setContext('from-trunk-sip-TCLPrimary');
         $action->setPriority('1');
         $action->setExtension('2138658800');
-        $action->setVariable('CALLERID(num)', $event->number);
-        //$action->setVariable('CALLERID(num)', '2138658800');
+        //$action->setVariable('CALLERID(num)', $event->number);
+        $action->setVariable('CALLERID(num)', $this->argument('number'));
+        //$action->setVariable('CALLERID(all)', '2138658800');
         $action->setCallerId('2138658800');
         $action->setVariable('CDR(userfield)', 'callback');
         //$action->setVariable('CDR(src)', $cdr->src);
@@ -57,18 +69,18 @@ class QueueAbandonListeners
             $resp = $client->send($action);
             $client->close();
             if($resp->getKey('response') == "Success") {
-                Callback::create([
-                    'number' =>  $event->number
-                ]);
-                Log::info("Callback has been initiated on number: " . $event->number);
+                $this->info("Callback has been initiated on number: " . $this->argument('number'));
+            } else {
+                $this->info(json_encode($resp));
             }
         } catch (ClientException $e) {
-            Log::error($e->getMessage());
+            $this->info($e->getMessage());
             //Log::error($e->getTraceAsString());
         }
+        return null;
     }
 
-    private function getOptions()
+    public function getOptions()
     {
         return $options = [
             'host' => '172.54.5.18',

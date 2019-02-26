@@ -10,10 +10,12 @@ use App\Events\QueueAbandonEvent;
 use Carbon\Carbon;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 
 class CallerAbandonListener implements ShouldQueue
 {
-    public $delay = 10;
+    public $delay = 60;
+    public $tries = 2;
 
     /**
      * Create the event listener.
@@ -37,17 +39,21 @@ class CallerAbandonListener implements ShouldQueue
         $abandon = $event->abandon;
         $cdr = Cdr::find($event->uniqueId);
 
-        $callback = Callback::where("number", $cdr->src)->orderBy('created_at', 'desc')->first();
-        $today = Carbon::now();
-        if($callback == null) {
-            //$this->info("Calling abandoned caller: " . $cdr->src);
-            event(new QueueAbandonEvent($cdr->src, $abandon));
-        } elseif($callback !== null && $today->diffInMinutes($callback->created_at) >= 5) {
-            /*$this->info(json_encode($callback));
-            $this->info(json_encode($today));
-            $this->info(json_encode($today->diffInMinutes($callback->created_at)));
-            $this->info("Calling abandoned caller: " . $cdr->src);*/
-            event(new QueueAbandonEvent($cdr->src, $abandon));
+        if($cdr !== null) {
+            $callback = Callback::where("number", $cdr->src)->orderBy('created_at', 'desc')->first();
+            $today = Carbon::now();
+            if($callback == null) {
+                //$this->info("Calling abandoned caller: " . $cdr->src);
+                event(new QueueAbandonEvent($cdr->src, $abandon));
+            } elseif($callback !== null && $today->diffInMinutes($callback->created_at) >= 5) {
+                /*$this->info(json_encode($callback));
+                $this->info(json_encode($today));
+                $this->info(json_encode($today->diffInMinutes($callback->created_at)));
+                $this->info("Calling abandoned caller: " . $cdr->src);*/
+                event(new QueueAbandonEvent($cdr->src, $abandon));
+            }
+        } else {
+            Log::error("CDR found null! with UniqueId: " . $event->uniqueId);
         }
     }
 }
