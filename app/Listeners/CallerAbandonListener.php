@@ -45,7 +45,7 @@ class CallerAbandonListener implements ShouldQueue
             if($callback == null) {
                 //$this->info("Calling abandoned caller: " . $cdr->src);
                 event(new QueueAbandonEvent($cdr->src, $abandon));
-            } elseif($callback !== null && $today->diffInMinutes($callback->created_at) >= 5) {
+            } elseif($callback !== null && $today->diffInMinutes($callback->created_at) >= 5 && $cdr->src !== '2138658800') {
                 /*$this->info(json_encode($callback));
                 $this->info(json_encode($today));
                 $this->info(json_encode($today->diffInMinutes($callback->created_at)));
