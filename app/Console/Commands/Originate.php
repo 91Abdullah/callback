@@ -45,22 +45,22 @@ class Originate extends Command
     {
         $client = new ClientImpl($this->getOptions());
         if(Str::startsWith($this->argument('number'), '0')) {
-            $action = new OriginateAction("SIP/" . $this->argument('number') . "@TCLPrimary");
+            $action = new OriginateAction("SIP/" . $this->argument('number') . "@TCL");
             $this->info("Dialing without zero: " . $this->argument('number'));
         } else {
-            $action = new OriginateAction("SIP/0" . $this->argument('number') . "@TCLPrimary");
+            $action = new OriginateAction("SIP/0" . $this->argument('number') . "@TCL");
             $this->info("Dialing with zero: " . $this->argument('number'));
         }
         //$action->setApplication('queue');
-        $action->setContext('from-trunk-sip-TCLPrimary');
+        $action->setContext('app-setcid');
         $action->setPriority('1');
-        $action->setExtension('2138658800');
+        $action->setExtension($this->argument('number'));
         //$action->setVariable('CALLERID(num)', $event->number);
         $action->setVariable('CALLERID(num)', $this->argument('number'));
         //$action->setVariable('CALLERID(all)', '2138658800');
-        $action->setCallerId('2138658800');
+        $action->setCallerId('2138797022');
         $action->setVariable('CDR(userfield)', 'callback');
-        //$action->setVariable('CDR(src)', $cdr->src);
+        $action->setVariable('CDR(src)', $this->argument('number'));
         //$action->setData('10');
         $action->setAsync(true);
 
@@ -70,8 +70,11 @@ class Originate extends Command
             $client->close();
             if($resp->getKey('response') == "Success") {
                 $this->info("Callback has been initiated on number: " . $this->argument('number'));
+                $this->info($resp->getKey('message'));
+            } elseif($resp->getKey('response') == "Error") {
+                $this->info($resp->getKey('message'));
             } else {
-                $this->info(json_encode($resp));
+                $this->info(var_dump($resp));
             }
         } catch (ClientException $e) {
             $this->info($e->getMessage());
@@ -83,11 +86,13 @@ class Originate extends Command
     public function getOptions()
     {
         return $options = [
-            'host' => '172.54.5.18',
+            //'host' => '172.54.5.18',
+            'host' => '10.0.0.80',
             'scheme' => 'tcp://',
             'port' => 5038,
             'username' => 'callback_mgr',
-            'secret' => '0chanc3yoadjasldjkasl',
+            //'secret' => '0chanc3yoadjasldjkasl',
+            'secret' => '0chanc3yo',
             'connect_timeout' => 1000,
             'read_timeout' => 1000
         ];

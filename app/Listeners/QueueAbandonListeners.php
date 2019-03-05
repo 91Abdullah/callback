@@ -48,7 +48,7 @@ class QueueAbandonListeners
         //$action->setVariable('CALLERID(num)', '2138658800');
         $action->setCallerId('2138658800');
         $action->setVariable('CDR(userfield)', 'callback');
-        //$action->setVariable('CDR(src)', $cdr->src);
+        $action->setVariable('CDR(src)', $event->number);
         //$action->setData('10');
         $action->setAsync(true);
 
@@ -71,11 +71,13 @@ class QueueAbandonListeners
     private function getOptions()
     {
         return $options = [
-            'host' => '172.54.5.18',
+            //'host' => '172.54.5.18',
+            'host' => '10.0.0.80',
             'scheme' => 'tcp://',
             'port' => 5038,
             'username' => 'callback_mgr',
-            'secret' => '0chanc3yoadjasldjkasl',
+            //'secret' => '0chanc3yoadjasldjkasl',
+            'secret' => '0chanc3yo',
             'connect_timeout' => 1000,
             'read_timeout' => 1000
         ];

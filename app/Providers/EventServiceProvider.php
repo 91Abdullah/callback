@@ -23,6 +23,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         'App\Events\CallerAbandonEvent' => [
             'App\Listeners\CallerAbandonListener'
+        ],
+        'App\Events\InitiateCallbackEvent' => [
+            'App\Listeners\InitiateCallbackListener'
         ]
     ];
 

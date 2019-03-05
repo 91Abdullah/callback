@@ -106,13 +106,15 @@ class AppStart extends Command
     private function returnOptions()
     {
         return $options = [
-            'host' => '172.54.5.18',
+            //'host' => '172.54.5.18',
+            'host' => '10.0.0.80',
             'scheme' => 'tcp://',
             'port' => 5038,
             'username' => 'callback_mgr',
-            'secret' => '0chanc3yoadjasldjkasl',
-            'connect_timeout' => 10000,
-            'read_timeout' => 10000
+            //'secret' => '0chanc3yoadjasldjkasl',
+            'secret' => '0chanc3yo',
+            'connect_timeout' => 1000,
+            'read_timeout' => 1000
         ];
     }
 }

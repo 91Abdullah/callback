@@ -7,6 +7,7 @@ use App\Callback;
 use App\Cdr;
 use App\Events\CallerAbandonEvent;
 use App\Events\QueueAbandonEvent;
+use App\QueueStat;
 use Carbon\Carbon;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -37,23 +38,30 @@ class CallerAbandonListener implements ShouldQueue
     {
         //sleep(5);
         $abandon = $event->abandon;
-        $cdr = Cdr::find($event->uniqueId);
+        $record = QueueStat::where([
+            ['uniqueid' => $event->uniqueId],
+            ['event', '11']
+        ])->first();
 
-        if($cdr !== null) {
-            $callback = Callback::where("number", $cdr->src)->orderBy('created_at', 'desc')->first();
+        $number = $record->info2;
+        Log::error("Calling back this number: " . $number);
+
+        if($number !== null) {
+            $callback = Callback::where("number", $number)->orderBy('created_at', 'desc')->first();
             $today = Carbon::now();
             if($callback == null) {
                 //$this->info("Calling abandoned caller: " . $cdr->src);
-                event(new QueueAbandonEvent($cdr->src, $abandon));
-            } elseif($callback !== null && $today->diffInMinutes($callback->created_at) >= 5 && $cdr->src !== '2138658800') {
+                event(new QueueAbandonEvent($number, $abandon));
+            } elseif($callback !== null && $today->diffInMinutes($callback->created_at) >= 5 && $number !== '2138658800') {
                 /*$this->info(json_encode($callback));
                 $this->info(json_encode($today));
                 $this->info(json_encode($today->diffInMinutes($callback->created_at)));
                 $this->info("Calling abandoned caller: " . $cdr->src);*/
-                event(new QueueAbandonEvent($cdr->src, $abandon));
+                event(new QueueAbandonEvent($number, $abandon));
             }
         } else {
-            Log::error("CDR found null! with UniqueId: " . $event->uniqueId);
+            Log::error("Number not found with UniqueId: " . $event->uniqueId);
+
         }
     }
 }
